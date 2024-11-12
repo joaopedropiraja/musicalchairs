@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/JogoDasCadeiras.dir/src/main.cpp.o -o JogoDasCadeiras
+/usr/bin/c++ CMakeFiles/JogoDasCadeiras.dir/src/main.cpp.o -o JogoDasCadeiras 

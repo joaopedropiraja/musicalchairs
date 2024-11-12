@@ -116,7 +116,7 @@ public:
         return this->cadeiras > 0;
     }
 
-    bool jogadores_nao_foram_elimnados() {
+    bool jogadores_nao_foram_eliminados() {
         return this->jogadores_eliminados.size() != CADEIRAS_RETIRADAS_TURNO;
     }    
 
@@ -192,7 +192,7 @@ public:
             while (this->jogo.tem_cadeira_disponivel());
             
             this->liberar_threads_eliminadas();
-            while (this->jogo.jogadores_nao_foram_elimnados());
+            while (this->jogo.jogadores_nao_foram_eliminados());
 
             this->jogo.verificar_fim_jogo();
             this->jogo.exibir_estado();
