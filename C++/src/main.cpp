@@ -22,7 +22,10 @@ constexpr int NUM_JOGADORES = 4;
 
 int vencedor = -1;
 
+
 std::counting_semaphore<NUM_JOGADORES> cadeira_sem(NUM_JOGADORES - 1); // Inicia com n-1 cadeiras, capacidade máxima n
+std::condition_variable cadeira_disp_cv;
+std::condition_variable jogadores_foram_eliminados_cv;
 std::condition_variable music_cv;
 std::mutex music_mutex;
 std::atomic<bool> musica_parada{ true };
@@ -81,6 +84,10 @@ public:
         // TODO: Elimina um jogador que não conseguiu uma cadeira
         this->jogadores_eliminados.push_back(jogador_id);
         this->num_jogadores--;
+    
+        if (!this->jogadores_nao_foram_eliminados()) {
+            jogadores_foram_eliminados_cv.notify_one();
+        }
     }
 
     void exibir_estado() {
@@ -110,6 +117,10 @@ public:
     void ocupar_cadeira(int jogador_id) {
         this->cadeiras--;
         this->jogadores_com_cadeiras.push_back(jogador_id);
+
+        if (!this->tem_cadeira_disponivel()) {
+            cadeira_disp_cv.notify_one();
+        }
     }
 
     int tem_cadeira_disponivel() {
@@ -189,10 +200,18 @@ public:
             std::this_thread::sleep_for(std::chrono::milliseconds(totalTime));
 
             this->jogo.parar_musica();
-            while (this->jogo.tem_cadeira_disponivel());
+
+            std::unique_lock<std::mutex> lock(music_mutex);
+        
+            while (this->jogo.tem_cadeira_disponivel()) {
+                cadeira_disp_cv.wait(lock);
+            };
             
             this->liberar_threads_eliminadas();
-            while (this->jogo.jogadores_nao_foram_eliminados());
+        
+            while (this->jogo.jogadores_nao_foram_eliminados()) {
+                jogadores_foram_eliminados_cv.wait(lock);
+            };
 
             this->jogo.verificar_fim_jogo();
             this->jogo.exibir_estado();
